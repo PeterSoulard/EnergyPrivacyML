@@ -24,16 +24,22 @@ CUSTOM_ARGUMENTS = None
 #       COUNTRY_ISO_CODE = "NLD"
 COUNTRY_ISO_CODE = None
 
-def generate_data(training_data: pd.DataFrame, arguments: dict) -> pd.DataFrame:
+
+def generate_data(training_data: pd.DataFrame,
+                  arguments: dict) -> pd.DataFrame:
     """
-    This function generates a synthetic dataset of the same size as the training data.
+    This function generates a synthetic dataset of the same size as the
+    training data.
 
     Parameters:
-    training_data (pd.DataFrame): The original data that the synthesizer model must be trained on.
-    arguments (dict): A dictionary with configuration variables used in this run.
+    training_data (pd.DataFrame): The original data that the synthesizer model
+        must be trained on.
+    arguments (dict): A dictionary with configuration variables used in
+        this run.
 
     Returns:
-    pd.DataFrame: A synthetic data dataframe of the same size as the training data dataframe.
+    pd.DataFrame: A synthetic data dataframe of the same size as the training
+        data dataframe.
     """
 
     # TODO: Replace this by code that generates and returns the synthetic data.

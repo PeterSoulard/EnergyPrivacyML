@@ -30,7 +30,7 @@ def start_tracking_energy(country_iso_code: str) -> OfflineEmissionsTracker:
     return tracker
 
 
-def stop_tracking_energy(tracker) -> None:
+def stop_tracking_energy(tracker: OfflineEmissionsTracker) -> None:
     # Stop the measurements
     tracker.stop()
 
@@ -161,50 +161,61 @@ def preprocess(data: pd.DataFrame) -> tuple:
     data["income"] = data["income"].astype(int)
 
     labels = data["income"].copy()
-    data = data.drop(["income"], axis = 1)
+    data = data.drop(["income"], axis=1)
 
-    continuous = ["age","capital_gain","capital_loss","hr_per_week"]
+    continuous = ["age", "capital_gain", "capital_loss", "hr_per_week"]
     data[continuous] = MinMaxScaler().fit_transform(data[continuous])
 
-    categorial = [feat for feat in data.columns.values if feat not in continuous]
-    data = pd.get_dummies(data, columns = categorial)
+    categorial = [feat for feat in data.columns.values
+                  if feat not in continuous]
+    data = pd.get_dummies(data, columns=categorial)
 
-    binary_columns = data.columns[(data == False).all() | (data == True).all()]
+    binary_columns = data.columns[(data is False).all() | (data is True).all()]
     data[binary_columns] = data[binary_columns].astype(int)
 
     return data, labels
 
 
-def accuracy(synthetic_data: pd.DataFrame, synthetic_labels: pd.DataFrame,
-             validation_data: pd.DataFrame, validation_labels: pd.DataFrame) -> float:
+def accuracy(synthetic_data: pd.DataFrame,
+             synthetic_labels: pd.DataFrame, validation_data: pd.DataFrame,
+             validation_labels: pd.DataFrame) -> float:
 
     validation_data = validation_data[synthetic_data.columns]
 
     # KNN
-    NeighbourModel = KNeighborsClassifier(n_neighbors = 2)
+    NeighbourModel = KNeighborsClassifier(n_neighbors=2)
     NeighbourModel.fit(synthetic_data, synthetic_labels.values.ravel())
-    report = classification_report(validation_labels, NeighbourModel.predict(validation_data), output_dict=True)
+    report = classification_report(validation_labels,
+                                   NeighbourModel.predict(validation_data),
+                                   output_dict=True)
     knn = report['accuracy']
 
     # LR
     LogReg = LogisticRegression(max_iter=1000)
     LogReg.fit(synthetic_data, synthetic_labels.values.ravel())
-    report = classification_report(validation_labels, LogReg.predict(validation_data), output_dict=True)
+    report = classification_report(validation_labels,
+                                   LogReg.predict(validation_data),
+                                   output_dict=True)
     lr = report['accuracy']
 
     # NN
     NeuralNet = Sequential()
-    NeuralNet.add(Dense(32, activation = 'relu'))
-    NeuralNet.add(Dense(64, activation = 'relu'))
-    NeuralNet.add(Dense(32, activation = 'relu'))
-    NeuralNet.add(Dense(8, activation = 'relu'))
-    NeuralNet.add(Dense(1, activation = 'sigmoid'))
-    NeuralNet.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
-    binary_columns = synthetic_data.columns[(synthetic_data == False).all() | (synthetic_data == True).all()]
+    NeuralNet.add(Dense(32, activation='relu'))
+    NeuralNet.add(Dense(64, activation='relu'))
+    NeuralNet.add(Dense(32, activation='relu'))
+    NeuralNet.add(Dense(8, activation='relu'))
+    NeuralNet.add(Dense(1, activation='sigmoid'))
+    NeuralNet.compile(optimizer='adam', loss='binary_crossentropy',
+                      metrics=['accuracy'])
+    binary_columns = synthetic_data.columns[(synthetic_data is False).all() |
+                                            (synthetic_data is True).all()]
     synthetic_data[binary_columns] = synthetic_data[binary_columns].astype(int)
-    NeuralNet.fit(synthetic_data, synthetic_labels, batch_size = 150, epochs = 50, verbose=0)
-    validation_data = tensorflow.convert_to_tensor(validation_data, dtype=tensorflow.float32)
-    validation_labels = tensorflow.convert_to_tensor(validation_labels, dtype=tensorflow.int32)
+    NeuralNet.fit(synthetic_data, synthetic_labels, batch_size=150,
+                  epochs=50, verbose=0)
+    validation_data = tensorflow.convert_to_tensor(validation_data,
+                                                   dtype=tensorflow.float32)
+    validation_labels = tensorflow.convert_to_tensor(validation_labels,
+                                                     dtype=tensorflow.int32)
     _, nn = NeuralNet.evaluate(validation_data, validation_labels, verbose=0)
 
     return (knn + lr + nn) / 3
@@ -212,7 +223,8 @@ def accuracy(synthetic_data: pd.DataFrame, synthetic_labels: pd.DataFrame,
 # ===== PLOTTING THE RESULTS =====
 
 
-def plot_energy_privacy(energy_usage: list, privacy_risk: list, risk_type: str) -> None:
+def plot_energy_privacy(energy_usage: list, privacy_risk: list,
+                        risk_type: str) -> None:
     plt.scatter(energy_usage, privacy_risk)
     plt.xlabel("Energy Consumption")
     plt.ylabel("Privacy Risk")
@@ -239,7 +251,8 @@ def plot_energy_accuracies(energy_usage: list, accuracies: list) -> None:
     plt.close()
 
 
-def plot_results(energy_usage: list, privacy_risks: dict, distances: list, accuracies: list) -> None:
+def plot_results(energy_usage: list, privacy_risks: dict,
+                 distances: list, accuracies: list) -> None:
     for risk_type in privacy_risks.keys():
         privacy_risk = privacy_risks.get(risk_type)
         plot_energy_privacy(energy_usage=energy_usage,
@@ -286,7 +299,8 @@ def main() -> None:
 
     # Loop over each arguments configuration.
     for i, arguments in enumerate(cs.CUSTOM_ARGUMENTS):
-        print(f"Running configuration {i+1}/{n_configurations}:\n\t{arguments}\n")
+        print(f"Running configuration {i+1}/{n_configurations}:")
+        print(f"\t{arguments}\n")
 
         sample_size = min(10_000, original_data.shape[0] // 10)
 
@@ -314,12 +328,15 @@ def main() -> None:
         distances.append(resemblance(training_data, synthetic_data))
 
         synthetic_data, synthetic_labels = preprocess(synthetic_data)
-        accuracies.append(accuracy(synthetic_data, synthetic_labels, validation_data, validation_labels))
+        accuracies.append(accuracy(synthetic_data, synthetic_labels,
+                                   validation_data, validation_labels))
 
     energy_usage = get_energy()
 
-    print(f"\tEnergy usage:\n{energy_usage}\n\tPrivacy risks:\n{privacy_risks}")
-    print(f"\tResemblances:\n{distances}\n\tAccuracies:\n{accuracies}")
+    print(f"\tEnergy usage:\n{energy_usage}")
+    print(f"\tPrivacy risks:\n{privacy_risks}")
+    print(f"\tJensen-Shannon distances:\n{distances}")
+    print(f"\tAccuracies:\n{accuracies}")
 
     plot_results(energy_usage, privacy_risks, distances, accuracies)
 
