@@ -170,7 +170,7 @@ def preprocess(data: pd.DataFrame) -> tuple:
                   if feat not in continuous]
     data = pd.get_dummies(data, columns=categorial)
 
-    binary_columns = data.columns[(data is False).all() | (data is True).all()]
+    binary_columns = data.columns[(data == False).all() | (data == True).all()]
     data[binary_columns] = data[binary_columns].astype(int)
 
     return data, labels
@@ -207,8 +207,8 @@ def accuracy(synthetic_data: pd.DataFrame,
     NeuralNet.add(Dense(1, activation='sigmoid'))
     NeuralNet.compile(optimizer='adam', loss='binary_crossentropy',
                       metrics=['accuracy'])
-    binary_columns = synthetic_data.columns[(synthetic_data is False).all() |
-                                            (synthetic_data is True).all()]
+    binary_columns = synthetic_data.columns[(synthetic_data == False).all() |
+                                            (synthetic_data == True).all()]
     synthetic_data[binary_columns] = synthetic_data[binary_columns].astype(int)
     NeuralNet.fit(synthetic_data, synthetic_labels, batch_size=150,
                   epochs=50, verbose=0)
