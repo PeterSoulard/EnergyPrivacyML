@@ -18,6 +18,7 @@ from keras.layers import Dense
 
 ORIGINALDATA_FILEPATH = "data/census_train.csv"
 VALIDATIONDATA_FILEPATH = "data/census_val.csv"
+SYNTHETICDATA_FILEPATH = "data/synthetic_data.csv"
 EMISSIONS_FILEPATH = "emissions.csv"
 
 # ===== ENERGY TRACKING =====
@@ -266,7 +267,7 @@ def plot_results(energy_usage: list, privacy_risks: dict,
 
 def main() -> None:
     # Import the custom synthesizer file
-    import custom_synthesizer as cs
+    import custom_synthesizer_synthcity as cs
 
     country_iso_code = cs.COUNTRY_ISO_CODE
 
@@ -313,6 +314,9 @@ def main() -> None:
         # Generate the data
         synthetic_data = cs.generate_data(training_data=training_data,
                                           arguments=arguments)
+
+        # Save the synthetic data to a file
+        synthetic_data.to_csv(SYNTHETICDATA_FILEPATH, index=False)
 
         # Stop tracking energy
         stop_tracking_energy(tracker)
